@@ -1,0 +1,227 @@
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+  
+
+    <title>Device Discovery</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="blog.css" rel="stylesheet">
+
+   
+  <style type="text/css"></style><style id="holderjs-style" type="text/css"></style></head>
+
+  <body style="">
+
+    <div class="container">
+
+      <div class="blog-header">
+        <h1 class="blog-title">Device Discovery for Internet of Things!!</h1>
+       
+      </div>
+
+      <div class="row">
+
+        <div class="col-sm-8 blog-main">
+
+          <div class="blog-post">
+            <p class="blog-post-meta">June 23, 2014 by <a href="#">Bhavana</a></p>
+
+         
+           
+           <p>
+            IoT is a buzzword none of us can really ignore. One day we have 10 billion devices connected to the internet, the next it goes up to 50 billion. 
+            This is not hard to believe, considering you can just stick a sensor on just about anything and plug it into the internet that rules
+            our lives. 
+           </p>
+        
+           <p> Most companies have built applications which you can use to control temperature, collect sensor readings and to talk to 
+           other devices, while others deal with storing all the data that is collected, their storage and security. PubNub on the other hand, lets
+           you build real-time applications for embedded devices without having to worry about the infrastructure. All you need to do 
+           is build a jazzy application with which you can rule the world (Muhahahah!!), and let PubNub take care of the rest. 
+           
+           
+           <p> This post takes you through the steps of detecting any device or machine connected to PubNub on a web-based application
+             using JavaScript and Java.
+              </p>
+              
+            <p>With all these applications and devices, one common requirement is the need to detect when machines or users are online and when
+            they are offline. Presence is a powerful feature of PubNub that lets you do exactly this, all with just one line of code.
+            So all you need to do is connect your embedded devices and watch them come online. 
+            <hr>
+             
+              <br>
+
+        <P> <a href = "http://banasrini.github.io/Device_discovery/">DEMO</A> . GOING TO ASK JOE TO JAZZ THIS PART UP WITH A PIC OF THE DEMO
+        ALONG WITH THE LINK. 
+        AND THE LINK TO THE GITHUB REPO. 
+           
+            <h2>Device Discovery</h2>
+
+			<br>
+            <h3> JavaScript</h3>
+       
+
+<p> <strong> STEP 1: </strong> The presence feature is an optional parameter used along with the subscribe call in JS.</p>
+<br>
+<p>BASIC USAGE:
+<pre><code>pubnub.subscribe({
+     channel: "my_channel",
+     presence: function(m){console.log(m)},
+     callback: function(m){console.log(m)}
+ });</code></pre>
+ 
+ <p> The presence feature will output the devices that are online as identified by their UUIDs, along with their timestamp, an action that 
+ indicates join/leave/timeout and the occupancy of the channel. This information will be displayed in the console.</p>
+ 
+ <p> But what if you want to consume this information - write it on a screen or store it somewhere? The following code lets you do 
+ just that.
+
+
+<p> <strong> STEP 2: </strong> The JavaScript bringing Presence to life.
+<pre><code>var deviceList[],
+devices =[];
+
+pubnub.subscribe({
+
+    channel: 'my_channel',
+    presence: function(message,channel){
+        if(message.action == "join"){
+        	devices.push(message.uuid);
+    		deviceList.append("&ltli text-align:
+    		center&gt" + message.uuid + "&lt/li&gt");
+      		}
+        else{
+          devices.splice(devices.indexOf(message.uuid), 1);
+          deviceList.find(message.uuid).remove();
+	}
+ }
+});</code></pre>
+
+
+    		<br>
+    		<p> Here, we define a custom function for presence which basically uses the different actions of a presence event
+    		 that could occur, such as <strong>join</strong>, <strong>timeout</strong> and <strong>leave</strong>. </p>
+    		 <ul>
+    		 <li> If a 'join' occurs, we append the UUID to the list of devices that are online.</li>
+    		 <li> If a 'leave or a timeout' occurs, we remove that UUID from the list of list of devices that are online.</li>
+    		 
+    		 </ul>
+    		 
+    		 <p>  You now have the online users, both in an array called 'devices' and also as list printed on a page. 
+    		 
+    	<p> 
+    	This way, you can now be updated on the different devices joining and leaving your network in realtime. 
+    	
+    	</p>
+    	
+    	<br><h3>Java</h3>
+    	
+    	<p> <strong> STEP 1: </strong> Presence and hereNow are two features of PubNub that will show you who is online
+    	at any instant. Whether you choose to use JavaScript or Java, the output for prsence is the same. You will get a 
+    	an output in this format : <br></br>
+<pre><code><strong>{"message":"OK","status":200,"uuids":["uuid1"],"service":"Presence",
+"occupancy":1}
+    	</strong></code></pre>
+    	where "uuids" contains a list of the uuids online and occupancy gives the number of online users. </p>
+    	<p>
+    	I will be using the hereNow feature to see 'who's there?'. All you need to provide
+    	is the channel name, and check if there is anyone on that channel. Yes, PubNub really makes our lives easy.</p>
+    	<br>
+    	<p>BASIC USAGE:
+    	<pre><code>pubnub.hereNow("my_channel", new Callback() {
+     public void successCallback(String channel, Object response) {
+         System.out.println(response);
+     }
+     public void errorCallback(String channel, PubnubError error) {
+         System.out.println(error);
+     }
+ });</code></pre> 
+ 
+ This will output the devices that are online, again, identified by the UUIDs. In order to consume this information, all 
+ you need is to modify the callback function a little. The following code shows you how to.</p>
+ 
+ <strong> STEP 2: </strong> 
+<p><pre><code>Callback callback = new Callback() {
+	public void successCallback(String channel, Object response) {
+	    String temp = response.toString();
+	    int start = temp.indexOf('[');
+	    int end = temp.indexOf(']');
+	    for(int index = start+1;index&ltend;index++){
+		    if(temp.charAt(index)!=','){	
+		    	uuid1 = uuid1 + temp.charAt(index);
+		    }
+		    else{
+		    	System.out.println();
+		    }
+	    }
+    	String replaced = uuid1.replace("\""," ");
+    	String[] uuidlist = replaced.split("\\s+");
+    	for (String tempstring : uuidlist){
+    		System.out.println(tempstring);
+    	}	
+	}
+		
+	public void errorCallback(String channel, PubnubError error){
+		System.out.println(error.toString());
+	}
+};
+	
+	public void herenow(){
+		Pubnub pubnub = new Pubnub("demo", "demo");
+		pubnub.hereNow("my_channel", callback);
+	}</code></pre>
+	
+	This code, modifies the information received by the hereNow function, and stores and prints it in an array called
+	'uuidlist'. In this manner, you can now use this information according to your requirements. 
+          </div><!-- /.blog-post -->
+
+        
+        </div><!-- /.blog-main -->
+
+        <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+          <div class="sidebar-module sidebar-module-inset">
+            <h3>PubNub</h3>
+            <p>The PubNub Realtime Network powers thousands of apps, streaming more than 3 million messages a second to over
+             200 million devices a month. 
+             <p><a class="btn btn-default" href="http://www.pubnub.com" role="button">View details »</a></p></p>
+          </div>
+          
+          <div class="sidebar-module">
+            <h4>Elsewhere</h4>
+            <ol class="list-unstyled">
+              <li><a href="https://github.com/banasrini/Device_discovery">GitHub</a></li>
+              <li><a href="https://twitter.com/PubNub">Twitter</a></li>
+            </ol>
+          </div>
+        </div><!-- /.blog-sidebar -->
+
+      </div><!-- /.row -->
+
+    </div><!-- /.container -->
+
+    <div class="blog-footer">
+      
+      <p>
+        <a href="#">Back to top</a>
+      </p>
+    </div>
+    
+    
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+  
+
+</body></html>
